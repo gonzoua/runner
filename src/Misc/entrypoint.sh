@@ -34,11 +34,17 @@ if [ -n "${RUNNER_LABELS}" ]; then
     RUNNER_LABELS_ARG="--labels ${RUNNER_LABELS}"
 fi
 
+hostip=$(route -n|grep ^0.0.0.0|awk '{ print $2 }'|sed 's/\.[^.]*$/.1/'|tr -d '\n')
+
+export http_proxy=http://$hostip:9090
+
+curl -v -s -X POST ${GITHUB_API_URL}/${orgs_or_repos}/${GITHUB_RUNNER_SCOPE}/actions/runners/registration-token -H "authorization: token $GITHUB_PAT" -H "accept: application/vnd.github.everest-preview+json"
+
 # Generate registration token
 RUNNER_REG_TOKEN=$(curl -s -X POST ${GITHUB_API_URL}/${orgs_or_repos}/${GITHUB_RUNNER_SCOPE}/actions/runners/registration-token -H "authorization: token $GITHUB_PAT" -H "accept: application/vnd.github.everest-preview+json" | jq -r '.token')
 
 # Create the runner and configure it
-./config.sh --unattended --name $RUNNER_NAME --url $RUNNER_REG_URL --token $RUNNER_REG_TOKEN $RUNNER_LABELS_ARG --replace
+./config.sh --unattended --name $RUNNER_NAME --url $RUNNER_REG_URL --token $RUNNER_REG_TOKEN $RUNNER_LABELS_ARG --replace --ephemeral
 
 # Run it
 ./bin/runsvc.sh interactive

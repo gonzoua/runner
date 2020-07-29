@@ -1,0 +1,28 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: actions-runners
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: runners
+  template:
+    metadata:
+      labels:
+        app: runners
+    spec:
+      hostNetwork: true
+      containers:
+      - name: runner
+        image: huangtingluo/autoscale-runner:v0.0
+        imagePullPolicy: Always
+        env:
+          - name: GITHUB_PAT
+            value: 62c13e14e947958516c103a9584f66227697c447
+          - name: GITHUB_RUNNER_SCOPE
+            value: monalisa/main123
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"

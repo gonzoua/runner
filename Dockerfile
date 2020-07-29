@@ -2,15 +2,17 @@ FROM mcr.microsoft.com/dotnet/core/runtime-deps:3.1-buster-slim
 
 ARG GITHUB_PAT
 ARG GITHUB_RUNNER_SCOPE
-ENV GITHUB_SERVER_URL="https://github.com"
-ENV GITHUB_API_URL="https://api.github.com"
+ENV GITHUB_SERVER_URL="http://github.localhost"
+ENV GITHUB_API_URL="http://api.github.localhost"
 
-RUN apt-get update \
+RUN apt-get update --fix-missing \
     && apt-get install -y --no-install-recommends \
         curl \
         jq \
         apt-utils \
         apt-transport-https \
+        unzip \
+        net-tools\
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
