@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 ###############################################################################
 #  
@@ -19,6 +19,8 @@ PACKAGE_DIR="$SCRIPT_DIR/../_package"
 DOTNETSDK_ROOT="$SCRIPT_DIR/../_dotnetsdk"
 DOTNETSDK_VERSION="3.1.100"
 DOTNETSDK_INSTALLDIR="$DOTNETSDK_ROOT/$DOTNETSDK_VERSION"
+DOTNET_ROOT="$DOTNETSDK_ROOT/$DOTNETSDK_VERSION"
+export DOTNET_ROOT
 RUNNER_VERSION=$(cat runnerversion)
 
 pushd "$SCRIPT_DIR"
@@ -29,7 +31,7 @@ if [[ "$DEV_CONFIG" == "Release" ]]; then
 fi
 
 CURRENT_PLATFORM="windows"
-if [[ ($(uname) == "Linux") || ($(uname) == "Darwin") ]]; then
+if [[ ($(uname) == "Linux") || ($(uname) == "Darwin") || ($(uname) == "FreeBSD") ]]; then
     CURRENT_PLATFORM=$(uname | awk '{print tolower($0)}')
 fi
 
@@ -160,7 +162,7 @@ function package ()
 
     pushd "$PACKAGE_DIR" > /dev/null
 
-    if [[ ("$CURRENT_PLATFORM" == "linux") || ("$CURRENT_PLATFORM" == "darwin") ]]; then
+    if [[ ("$CURRENT_PLATFORM" == "linux") || ("$CURRENT_PLATFORM" == "darwin") || ("$CURRENT_PLATFORM" == "freebsd") ]]; then
         tar_name="${runner_pkg_name}.tar.gz"
         echo "Creating $tar_name in ${LAYOUT_DIR}"
         tar -czf "${tar_name}" -C "${LAYOUT_DIR}" .
@@ -194,6 +196,8 @@ if [[ (! -d "${DOTNETSDK_INSTALLDIR}") || (! -e "${DOTNETSDK_INSTALLDIR}/.${DOTN
         sdkinstallwindow_path=${DOTNETSDK_INSTALLDIR:1}
         sdkinstallwindow_path=${sdkinstallwindow_path:0:1}:${sdkinstallwindow_path:1}
         powershell -NoLogo -Sta -NoProfile -NonInteractive -ExecutionPolicy Unrestricted -Command "& \"./Misc/dotnet-install.ps1\" -Version ${DOTNETSDK_VERSION} -InstallDir \"${sdkinstallwindow_path}\" -NoPath; exit \$LastExitCode;" || checkRC dotnet-install.ps1
+    elif [[ ("$CURRENT_PLATFORM" == "freebsd") ]]; then
+        bash ./Misc/dotnet-install-freebsd.sh "${DOTNETSDK_INSTALLDIR}" || checkRC dotnet-install-freebsd.sh
     else
         bash ./Misc/dotnet-install.sh --version ${DOTNETSDK_VERSION} --install-dir "${DOTNETSDK_INSTALLDIR}" --no-path || checkRC dotnet-install.sh
     fi

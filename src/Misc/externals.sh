@@ -149,3 +149,17 @@ fi
 if [[ "$PACKAGERUNTIME" == "linux-arm" ]]; then
     acquireExternalTool "$NODE_URL/v${NODE12_VERSION}/node-v${NODE12_VERSION}-linux-armv7l.tar.gz" node12 fix_nested_dir
 fi
+
+# Before we have proper runtime
+if [[ "$(uname)" == "FreeBSD" ]]; then
+    if [ -e /usr/local/bin/node -a -e /usr/local/bin/npm ]; then
+        target_dir="$LAYOUT_DIR/externals/node12/bin"
+        mkdir -p "$target_dir"
+        ln -s /usr/local/bin/npm "$target_dir/npm"
+        ln -s /usr/local/bin/npx "$target_dir/npx"
+        ln -s /usr/local/bin/node "$target_dir/node"
+    else
+        echo "Run 'sudo pkg install -y node12 npm-node12'"
+        exit 1
+    fi
+fi
